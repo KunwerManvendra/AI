@@ -1,0 +1,39 @@
+name: Deploy to AWS Lambda
+
+on:
+  push:
+    branches:
+      - main  # Change this if your branch is different
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.9'
+
+    - name: Install Dependencies
+      run: |
+        pip install boto3
+
+    - name: Package and Deploy Lambda
+      run: |
+        mkdir package
+        cp lambda_function.py package/
+        cd package
+        zip -r ../lambda.zip .
+      
+    - name: Deploy to AWS Lambda
+      uses: appleboy/lambda-action@master
+      with:
+        aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws_region: ${{ secrets.AWS_REGION }}
+        function_name: "bedrockLambda"
+        zip_file: "lambda.zip"
